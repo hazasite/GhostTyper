@@ -12,5 +12,6 @@ contextBridge.exposeInMainWorld('ghostAPI', {
     onStatsUpdated: (callback) => ipcRenderer.on('stats-updated', (event, stats) => callback(stats)),
     onPlaySound: (callback) => ipcRenderer.on('play-sound', (event) => callback()),
     pasteShortcut: (shortcut) => ipcRenderer.invoke('paste-shortcut', shortcut),
-    closeSearch: () => ipcRenderer.invoke('close-search')
+    closeSearch: () => ipcRenderer.invoke('close-search'),
+    openExternal: (url) => ipcRenderer.send('open-external', url)
 });

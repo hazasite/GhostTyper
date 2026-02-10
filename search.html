@@ -36,6 +36,36 @@
             display: flex;
             flex-direction: column;
             -webkit-app-region: drag;
+            transform: scale(0.95);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .search-container.active {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        @keyframes popIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .search-input-wrapper {
@@ -170,7 +200,9 @@
             }
 
             resultsList.innerHTML = filteredShortcuts.map((s, idx) => `
-                <div class="result-item ${idx === selectedIndex ? 'selected' : ''}" onclick="selectShortcut(${idx})">
+                <div class="result-item ${idx === selectedIndex ? 'selected' : ''}" 
+                     style="animation: fadeInUp 0.4s ease forwards; animation-delay: ${idx * 0.03}s;"
+                     onclick="selectShortcut(${idx})">
                     <span class="result-trigger">${s.trigger}</span>
                     <span class="result-expansion">${s.expansion}</span>
                 </div>
@@ -212,7 +244,12 @@
 
         // Focus input on show
         window.addEventListener('focus', () => {
+            document.querySelector('.search-container').classList.add('active');
             searchInput.focus();
+        });
+
+        window.addEventListener('blur', () => {
+            document.querySelector('.search-container').classList.remove('active');
         });
 
         init();

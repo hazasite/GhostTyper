@@ -8,6 +8,7 @@ const {
   dialog,
   globalShortcut,
   clipboard,
+  shell,
 } = require("electron");
 const robot = require("@jitsi/robotjs");
 const { autoUpdater } = require("electron-updater");
@@ -17,6 +18,9 @@ const { spawn, execSync } = require("child_process");
 
 // Store setup
 let store;
+let cachedShortcuts = [];
+let cachedSettings = {};
+
 async function initStore() {
   const { default: Store } = await import("electron-store");
   store = new Store({
@@ -26,14 +30,22 @@ async function initStore() {
         expansions: 0,
         charsSaved: 0,
       },
-      settings: {
+        settings: {
         startWithWindows: false,
         startMinimized: false,
         playSound: true,
         caseSensitive: false,
+        useCustomAI: false,
+        apiEndpoint: 'https://api.openai.com/v1/chat/completions',
+        apiKey: '',
+        apiModel: 'gpt-3.5-turbo'
       },
     },
   });
+  
+  // Initialize cache
+  cachedShortcuts = store.get("shortcuts") || [];
+  cachedSettings = store.get("settings") || {};
 }
 
 let mainWindow;
@@ -43,12 +55,22 @@ let tray;
 // --- PowerShell Input Simulation ---
 function sendKeys(keys) {
   try {
-    // Escape for PowerShell command line
-    const safeKeys = keys.replace(/'/g, "''").replace(/"/g, '\\"');
-    const cmd = `powershell -NoProfile -Command "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait('${safeKeys}')"`;
-    execSync(cmd, { windowsHide: true });
+    // 1. Replace newlines with {ENTER} for SendKeys compatibility
+    const finalKeys = keys.replace(/\r?\n/g, "{ENTER}");
+    
+    // 2. Escape single quotes for the PowerShell string literal
+    // Note: We do NOT escape { } etc. here because they are already control codes
+    const safeKeys = finalKeys.replace(/'/g, "''");
+    
+    // 3. Construct the script with progress silencing
+    // [void] prevents the assembly load from outputting anything
+    const psScript = `$ProgressPreference = 'SilentlyContinue'; [void][System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms'); [System.Windows.Forms.SendKeys]::SendWait('${safeKeys}')`;
+    const encodedScript = Buffer.from(psScript, 'utf16le').toString('base64');
+    
+    const cmd = `powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -EncodedCommand ${encodedScript}`;
+    execSync(cmd, { windowsHide: true, stdio: 'ignore' });
   } catch (err) {
-    console.error("SendKeys error:", err);
+    // Silent fail
   }
 }
 
@@ -140,6 +162,12 @@ const MAX_BUFFER = 50;
 uIOhook.on("keydown", (e) => {
   if (!store) return; // Basic safety
 
+  // Ignore shortcuts if Ghost Typer itself is focused
+  if (BrowserWindow.getFocusedWindow()) {
+    inputBuffer = []; // Clear buffer to prevent accidental triggers after switching away
+    return;
+  }
+
   if (e.keycode === UiohookKey.Backspace) {
     inputBuffer.pop();
     return;
@@ -161,12 +189,9 @@ uIOhook.on("keydown", (e) => {
 
 function checkShortcuts() {
   const textInfo = inputBuffer.join("");
-  const shortcuts = store.get("shortcuts");
-  const settings = store.get("settings");
+  const lowerText = textInfo.toLowerCase();
 
   // Check for dynamic built-in variables first
-  const lowerText = textInfo.toLowerCase();
-  
   if (lowerText.endsWith(";date")) {
     performExpansion({ trigger: ";date", expansion: getFormattedDate() });
     return;
@@ -177,6 +202,13 @@ function checkShortcuts() {
   }
   if (lowerText.endsWith(";now")) {
     performExpansion({ trigger: ";now", expansion: `Today is ${getFormattedDate()} and time is ${getFormattedTime()}` });
+    return;
+  }
+  if (lowerText.endsWith(";lorem")) {
+    performExpansion({ 
+      trigger: ";lorem", 
+      expansion: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." 
+    });
     return;
   }
 
@@ -220,8 +252,8 @@ function checkShortcuts() {
 
 
 
-  for (const s of shortcuts) {
-    const isMatch = settings.caseSensitive
+  for (const s of cachedShortcuts) {
+    const isMatch = cachedSettings.caseSensitive
       ? textInfo.endsWith(s.trigger)
       : textInfo.toLowerCase().endsWith(s.trigger.toLowerCase());
 
@@ -236,11 +268,9 @@ function performExpansion(shortcut) {
   // 1. Clear buffer to prevent re-triggering
   inputBuffer = [];
 
-  // 2. Calculate backspaces needed
-  const backspaceCount = shortcut.trigger.length;
-  let cmdString = "";
-  for (let i = 0; i < backspaceCount; i++) {
-    cmdString += "{BACKSPACE}";
+  // 2. Clear previous trigger with instant backspaces using RobotJS
+  for (let i = 0; i < shortcut.trigger.length; i++) {
+    robot.keyTap("backspace");
   }
 
   // 3. Add expansion text
@@ -273,9 +303,23 @@ function performExpansion(shortcut) {
     }
   }
 
-  // 7. Send keys
-  cmdString += escapeForSendKeys(expansion);
-  sendKeys(cmdString);
+  // 6. Send keys - SUPER FAST HYBRID METHOD
+  // Wait a tiny bit for the UI to catch up with backspaces if needed, though usually not
+  setTimeout(() => {
+    // Save current clipboard to restore later (optional, but polite)
+    const originalClipboard = clipboard.readText();
+    
+    // Put expansion into clipboard and paste it
+    clipboard.writeText(expansion);
+    
+    // Trigger Ctrl+V
+    robot.keyTap("v", process.platform === "darwin" ? "command" : "control");
+    
+    // Restore clipboard after a short delay so the paste has time to complete
+    setTimeout(() => {
+      clipboard.writeText(originalClipboard);
+    }, 500);
+  }, 10);
 }
 
 // --- App Lifecycle ---
@@ -295,6 +339,12 @@ function createWindow() {
   });
 
   mainWindow.loadFile("index.html");
+
+  // Force links to open in the default browser
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+    return { action: "deny" };
+  });
 
   mainWindow.once("ready-to-show", () => {
     const settings = store.get("settings");
@@ -337,6 +387,12 @@ function createSearchWindow() {
   });
 
   searchWindow.loadFile("search.html");
+
+  // Force links to open in the default browser
+  searchWindow.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url);
+    return { action: "deny" };
+  });
 
   searchWindow.on("blur", () => {
     searchWindow.hide();
@@ -459,34 +515,31 @@ function checkForUpdatesManual() {
 
 // IPC Handlers
 ipcMain.handle("add-shortcut", (event, s) => {
-  const shortcuts = store.get("shortcuts");
-  shortcuts.push(s);
-  store.set("shortcuts", shortcuts);
-  mainWindow.webContents.send("shortcuts-updated", shortcuts);
-  return shortcuts;
+  cachedShortcuts.push(s);
+  store.set("shortcuts", cachedShortcuts);
+  mainWindow.webContents.send("shortcuts-updated", cachedShortcuts);
+  return cachedShortcuts;
 });
 
 ipcMain.handle("delete-shortcut", (event, trigger) => {
-  let shortcuts = store.get("shortcuts");
-  shortcuts = shortcuts.filter((s) => s.trigger !== trigger);
-  store.set("shortcuts", shortcuts);
-  mainWindow.webContents.send("shortcuts-updated", shortcuts);
-  return shortcuts;
+  cachedShortcuts = cachedShortcuts.filter((s) => s.trigger !== trigger);
+  store.set("shortcuts", cachedShortcuts);
+  mainWindow.webContents.send("shortcuts-updated", cachedShortcuts);
+  return cachedShortcuts;
 });
 
 ipcMain.handle("update-shortcut", (event, oldTrigger, newData) => {
-  let shortcuts = store.get("shortcuts");
-  const index = shortcuts.findIndex((s) => s.trigger === oldTrigger);
+  const index = cachedShortcuts.findIndex((s) => s.trigger === oldTrigger);
   if (index !== -1) {
-    shortcuts[index] = newData;
-    store.set("shortcuts", shortcuts);
-    mainWindow.webContents.send("shortcuts-updated", shortcuts);
+    cachedShortcuts[index] = newData;
+    store.set("shortcuts", cachedShortcuts);
+    mainWindow.webContents.send("shortcuts-updated", cachedShortcuts);
   }
-  return shortcuts;
+  return cachedShortcuts;
 });
 
 ipcMain.handle("get-shortcuts", () => {
-  return store.get("shortcuts");
+  return cachedShortcuts;
 });
 
 ipcMain.handle("get-stats", () => {
@@ -494,15 +547,16 @@ ipcMain.handle("get-stats", () => {
 });
 
 ipcMain.handle("get-settings", () => {
-  return store.get("settings");
+  return cachedSettings;
 });
 
 ipcMain.handle("update-settings", (event, newSettings) => {
-  store.set("settings", newSettings);
+  cachedSettings = newSettings;
+  store.set("settings", cachedSettings);
 
   // Apply "Start with Windows"
   const options = {
-    openAtLogin: newSettings.startWithWindows,
+    openAtLogin: cachedSettings.startWithWindows,
     path: app.getPath("exe"),
   };
 
@@ -513,7 +567,7 @@ ipcMain.handle("update-settings", (event, newSettings) => {
 
   app.setLoginItemSettings(options);
 
-  return newSettings;
+  return cachedSettings;
 });
 
 ipcMain.handle("close-search", () => {
@@ -528,4 +582,8 @@ ipcMain.handle("paste-shortcut", (event, shortcut) => {
   setTimeout(() => {
     performExpansion(shortcut);
   }, 100);
+});
+
+ipcMain.on("open-external", (event, url) => {
+  shell.openExternal(url);
 });

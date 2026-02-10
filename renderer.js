@@ -11,6 +11,11 @@ const toastMessage = document.getElementById('toastMessage');
 const modalTitle = document.getElementById('modalTitle');
 const submitBtn = document.getElementById('submitBtn');
 
+// Chat Elements
+const chatMessages = document.getElementById('chatMessages');
+const chatInput = document.getElementById('chatInput');
+const sendMessageBtn = document.getElementById('sendMessageBtn');
+
 // Stats elements (shortcuts section)
 const totalShortcutsEl = document.getElementById('totalShortcuts');
 const totalExpansionsEl = document.getElementById('totalExpansions');
@@ -29,7 +34,9 @@ const sections = {
     defaults: document.getElementById('defaultsSection'),
     communication: document.getElementById('communicationSection'),
     appShortcuts: document.getElementById('appShortcutsSection'),
-    settings: document.getElementById('settingsSection')
+    aiAssistant: document.getElementById('aiAssistantSection'),
+    settings: document.getElementById('settingsSection'),
+    about: document.getElementById('aboutSection')
 };
 
 // State
@@ -56,6 +63,27 @@ async function init() {
     applySettingsToUI();
     setupNavigation();
     setupSettings();
+    setupAiAssistant();
+    setupContactButtons();
+}
+
+function setupContactButtons() {
+    const githubBtn = document.getElementById('githubBtn');
+    const whatsappBtn = document.getElementById('whatsappBtn');
+
+    if (githubBtn) {
+        githubBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.ghostAPI.openExternal('https://github.com/hazasite');
+        });
+    }
+
+    if (whatsappBtn) {
+        whatsappBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.ghostAPI.openExternal(whatsappBtn.href);
+        });
+    }
 }
 
 // Setup navigation
@@ -144,7 +172,6 @@ function setupSettings() {
         'playSound': 'playSound',
         'caseSensitive': 'caseSensitive'
     };
-
     Object.keys(toggles).forEach(key => {
         const el = document.getElementById(toggles[key]);
         if (el) {
@@ -157,6 +184,8 @@ function setupSettings() {
     });
 }
 
+
+
 function applySettingsToUI() {
     const toggles = {
         'startWithWindows': 'startWithWindows',
@@ -164,7 +193,6 @@ function applySettingsToUI() {
         'playSound': 'playSound',
         'caseSensitive': 'caseSensitive'
     };
-
     Object.keys(toggles).forEach(key => {
         const el = document.getElementById(toggles[key]);
         if (el) {
@@ -429,6 +457,267 @@ document.addEventListener('keydown', (e) => {
         openAddModal();
     }
 });
+
+// AI Assistant Logic
+function setupAiAssistant() {
+    if (sendMessageBtn) {
+        sendMessageBtn.addEventListener('click', () => sendAiMessage());
+    }
+    
+    if (chatInput) {
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendAiMessage();
+        });
+    }
+}
+
+async function sendAiMessage() {
+    const text = chatInput.value.trim();
+    if (!text) return;
+
+    // Add user message
+    addChatMessage(text, 'user');
+    chatInput.value = '';
+    
+    // Show temporary loading message
+    addChatMessage('Thinking...', 'ai', true);
+
+    // Construct the context-aware prompt
+    const appInfo = `
+You are the Ghost Typer Assistant, the official AI companion for the Ghost Typer app.
+Developed by: HAZA
+Founder: Janma Hasarel
+
+Ghost Typer is a premium, high-performance text expansion tool designed to boost productivity.
+
+Key Features & Functionality:
+- Text Expansion: Type a short "trigger" (e.g., ;mail) and it instantly expands into your predefined text.
+- Dynamic Placeholders: Shortcuts support {date} (YYYY-MM-DD) and {time} (HH:MM:SS) for automated snippets.
+- Spotlight Search: Press Ctrl + Space to open a sleek, transparent search bar to find and paste any shortcut instantly.
+- Statistics: The app tracks your productivity, showing total expansions and the exact number of characters you've saved.
+- System Tray: Ghost Typer runs quietly in the background. Minimize it to the system tray to keep your workspace clean.
+- Custom AI: Users can use their own OpenAI-compatible API keys (like Google Gemini) via the Settings section for the AI Assistant.
+
+Settings & Customization:
+- Start with Windows: Automatically launch the app when you log in.
+- Start Minimized: Launch the app directly into the system tray.
+- Play Sound: Hear a subtle confirmation sound every time a shortcut expands.
+- Case Sensitivity: Choose whether triggers should distinguish between uppercase and lowercase letters.
+
+ACTION CAPABILITY:
+You can change settings, create, edit, AND delete shortcuts for the user!
+1. Change setting: [CMD:SETTING:{"key_name": value}]
+2. Create shortcut: [CMD:SHORTCUT:{"trigger": ";yourtrigger", "expansion": "text"}]
+3. Edit shortcut: [CMD:EDIT:{"trigger": ";existing", "expansion": "new text"}]
+4. Delete shortcut: [CMD:DELETE:{"trigger": ";existing"}]
+
+IMPORTANT INSTRUCTIONS:
+- Do NOT wrap these [CMD:...] tags in backticks or code blocks.
+- ONLY use the [CMD:...] tags if the user EXPLICITLY asks you to create, edit, delete or change something. 
+- If the user asks "HOW to" do something, just give them instructions without executing any commands.
+- If you create/edit/delete something, confirm it clearly like: "I have updated the shortcut for you!" or "Shortcut created successfully!"
+- Keep it short and professional.
+
+Context for response:
+- If asked "how to create/add a shortcut", explain that they can use the "Create Shortcut" button, the Ctrl + N hotkey, OR they can simply tell YOU (the AI) to "Create a shortcut with trigger ;t and expansion e". 
+- Do NOT include a live [CMD:...] tag in your response when giving instructions. Only use it when you are actually performing the task.
+- If asked about "Active & Listening" status, explain that the app is currently monitoring your keystrokes to detect and expand your shortcuts.
+- Always be helpful, professional, and proud of being a HAZA product.
+
+User Question: ${text}`;
+
+    try {
+        let data = '';
+        if (settings.useCustomAI && settings.apiEndpoint && settings.apiKey) {
+            // Use OpenAI compatible custom API
+            const response = await fetch(settings.apiEndpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${settings.apiKey}`
+                },
+                body: JSON.stringify({
+                    model: settings.apiModel || 'gpt-3.5-turbo',
+                    messages: [{ role: 'user', content: appInfo }]
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error?.message || `API Error: ${response.status}`);
+            }
+
+            const result = await response.json();
+            data = result.choices[0].message.content;
+        } else {
+            // Use Pollinations.ai with Gemini model for higher quality detailed responses
+            const url = `https://text.pollinations.ai/${encodeURIComponent(appInfo)}?model=gemini&seed=${Math.floor(Math.random()*1000)}`;
+            
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: { 'Cache-Control': 'no-cache' }
+            });
+            
+            if (!response.ok) {
+                const fallbackResponse = await fetch(`https://text.pollinations.ai/${encodeURIComponent(appInfo)}`);
+                if (!fallbackResponse.ok) throw new Error(`Pollinations API Error: ${fallbackResponse.status}`);
+                data = await fallbackResponse.text();
+            } else {
+                data = await response.text();
+            }
+        }
+        
+        // Remove loading message
+        const loadingMsg = document.getElementById('temp-loading-msg');
+        if (loadingMsg) loadingMsg.remove();
+        
+        let finalData = data;
+
+        // Check for settings commands in the message
+        const cmdRegex = /\[CMD:SETTING:\s*({[\s\S]*?})\s*\]/i;
+        const match = data.match(cmdRegex);
+        if (match) {
+            try {
+                const jsonStr = match[1].replace(/\\'/g, "'");
+                const settingChange = JSON.parse(jsonStr);
+                const key = Object.keys(settingChange)[0];
+                const value = settingChange[key];
+                
+                if (key in settings) {
+                    settings[key] = value;
+                    await window.ghostAPI.updateSettings(settings);
+                    applySettingsToUI();
+                    showToast(`Setting updated`);
+                }
+            } catch (e) {
+                console.error('Failed to parse AI command:', e);
+            }
+            // Always remove the command from the displayed message, even if parsing/update failed
+            finalData = finalData.replace(cmdRegex, '').trim();
+        }
+
+        // Check for shortcut creation command
+        const shortcutRegex = /\[CMD:SHORTCUT:\s*({[\s\S]*?})\s*\]/i;
+        const shortcutMatch = data.match(shortcutRegex);
+        if (shortcutMatch) {
+            try {
+                const jsonStr = shortcutMatch[1].replace(/\\'/g, "'");
+                const shortcutData = JSON.parse(jsonStr);
+                if (shortcutData.trigger && shortcutData.expansion) {
+                    if (shortcuts.find(s => s.trigger === shortcutData.trigger)) {
+                        showToast('Trigger already exists');
+                    } else {
+                        await window.ghostAPI.addShortcut(shortcutData);
+                        showToast(`Shortcut created`);
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to parse AI shortcut command:', e);
+            }
+            finalData = finalData.replace(shortcutRegex, '').trim();
+        }
+
+        // Check for Edit command
+        const editRegex = /\[CMD:EDIT:\s*({[\s\S]*?})\s*\]/i;
+        const editMatch = data.match(editRegex);
+        if (editMatch) {
+            try {
+                const jsonStr = editMatch[1].replace(/\\'/g, "'");
+                const editData = JSON.parse(jsonStr);
+                const existing = shortcuts.find(s => s.trigger === editData.trigger);
+                if (existing) {
+                    await window.ghostAPI.updateShortcut(editData.trigger, { trigger: editData.trigger, expansion: editData.expansion });
+                    showToast(`Shortcut updated`);
+                } else {
+                    showToast('Shortcut not found');
+                }
+            } catch (e) {
+                console.error('Failed to parse AI edit command:', e);
+            }
+            finalData = finalData.replace(editRegex, '').trim();
+        }
+
+        // Check for Delete command
+        const deleteRegex = /\[CMD:DELETE:\s*({[\s\S]*?})\s*\]/i;
+        const deleteMatch = data.match(deleteRegex);
+        if (deleteMatch) {
+            try {
+                const jsonStr = deleteMatch[1].replace(/\\'/g, "'");
+                const deleteData = JSON.parse(jsonStr);
+                const existing = shortcuts.find(s => s.trigger === deleteData.trigger);
+                if (existing) {
+                    await window.ghostAPI.deleteShortcut(deleteData.trigger);
+                    showToast(`Shortcut deleted`);
+                } else {
+                    showToast('Shortcut not found');
+                }
+            } catch (e) {
+                console.error('Failed to parse AI delete command:', e);
+            }
+        }
+        
+        // Final cleanup of the message
+        // 1. Remove any command tags that might remain
+        finalData = finalData
+            .replace(/\[CMD:SETTING:[\s\S]*?\]/gi, '')
+            .replace(/\[CMD:SHORTCUT:[\s\S]*?\]/gi, '')
+            .replace(/\[CMD:EDIT:[\s\S]*?\]/gi, '')
+            .replace(/\[CMD:DELETE:[\s\S]*?\]/gi, '');
+
+        // 2. Remove leftover code blocks or backticks that the AI often adds around commands
+        finalData = finalData
+            .replace(/```[\s\S]*?```/g, '') // Remove code blocks
+            .replace(/`/g, '')             // Remove single backticks
+            .replace(/[\r\n]{2,}/g, '\n')   // Collapse multiple newlines
+            .trim();
+        
+        // 3. Fallback/Friendly confirmation if the message is too technical or empty
+        if (!finalData || finalData.length < 5) {
+            finalData = "Meka hari machan! I've updated your shortcuts successfully. ✅";
+        }
+        
+        addChatMessage(finalData, 'ai');
+    } catch (error) {
+        console.error('AI Error:', error);
+        const loadingMsg = document.getElementById('temp-loading-msg');
+        if (loadingMsg) loadingMsg.remove();
+        addChatMessage('Sorry, I could not connect to the AI service. Please check your internet connection or Refresh.', 'ai');
+    }
+}
+
+function addChatMessage(text, sender, isTemp = false) {
+    const div = document.createElement('div');
+    div.className = `chat-message ${sender}`;
+    if (isTemp) div.id = 'temp-loading-msg';
+    
+    // Basic formatting
+    // We already have escapeHtml function available
+    let content = escapeHtml(text);
+    
+    // Simple Markdown-like formatting for AI responses
+    if (sender === 'ai') {
+        content = content
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/`(.*?)`/g, '<code>$1</code>')
+            .replace(/\n/g, '<br>');
+    }
+        
+    div.innerHTML = `
+        ${sender === 'ai' ? `
+        <div class="message-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+            </svg>
+        </div>` : ''}
+        <div class="message-content">
+            ${content}
+        </div>
+    `;
+    
+    chatMessages.appendChild(div);
+    // Scroll to bottom
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
 
 // Initialize app
 init();

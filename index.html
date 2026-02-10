@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com;"
+      content="default-src 'self'; connect-src 'self' *; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com;"
     />
     <title>Ghost Typer</title>
     <link rel="stylesheet" href="style.css" />
@@ -22,87 +22,64 @@
       <aside class="sidebar">
         <div class="logo">
           <div class="logo-icon">
-            <img src="assets/icon.ico" alt="Ghost Typer">
+            <img src="assets/icon.ico" alt="Ghost Typer" />
           </div>
           <span class="logo-text">Ghost Typer</span>
         </div>
 
         <nav class="nav-menu">
           <a href="#" class="nav-item active" data-section="shortcuts">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
             </svg>
             <span>Shortcuts</span>
           </a>
-          <a href="#" class="nav-item" data-section="stats">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M18 20V10M12 20V4M6 20v-6" />
-            </svg>
-            <span>Statistics</span>
-          </a>
           <a href="#" class="nav-item" data-section="defaults">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path
-                d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"
-              />
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4" />
             </svg>
             <span>Defaults</span>
           </a>
-
           <a href="#" class="nav-item" data-section="communication">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
             <span>Communication</span>
           </a>
-
+          <a href="#" class="nav-item" data-section="stats">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 20V10M12 20V4M6 20v-6" />
+            </svg>
+            <span>Statistics</span>
+          </a>
           <a href="#" class="nav-item" data-section="appShortcuts">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="2" y="4" width="20" height="16" rx="2" />
-              <path
-                d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M6 16h12"
-              />
+              <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M6 16h12" />
             </svg>
             <span>App Shortcuts</span>
           </a>
+          <a href="#" class="nav-item" data-section="aiAssistant">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+              <path d="m5 3 1 1"/><path d="m19 17 1 1"/><path d="m19 3 1 1"/><path d="m5 17 1 1"/>
+            </svg>
+            <span>AI Assistant</span>
+          </a>
           <a href="#" class="nav-item" data-section="settings">
-            <svg
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="3" />
-              <path
-                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
-              />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
             </svg>
             <span>Settings</span>
+          </a>
+          <a href="#" class="nav-item" data-section="about">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+            <span>About</span>
           </a>
         </nav>
 
@@ -283,12 +260,17 @@
                 Today is {date} and time is {time}
               </div>
             </div>
-            
 
-
-
-
-            
+            <!-- Lorem -->
+            <div class="shortcut-card">
+              <div class="shortcut-header">
+                <span class="shortcut-trigger">;lorem</span>
+                <span class="badge">Built-in</span>
+              </div>
+              <div class="shortcut-expansion">
+                Generates a long Lorem Ipsum placeholder paragraph.
+              </div>
+            </div>
           </div>
 
           <div class="stats-info-card mt-24">
@@ -317,9 +299,7 @@
                 <span class="shortcut-trigger">;do</span>
                 <span class="badge">Built-in</span>
               </div>
-              <div class="shortcut-expansion">
-                How are you doing?
-              </div>
+              <div class="shortcut-expansion">How are you doing?</div>
             </div>
 
             <!-- ;gm -->
@@ -328,9 +308,7 @@
                 <span class="shortcut-trigger">;gm</span>
                 <span class="badge">Built-in</span>
               </div>
-              <div class="shortcut-expansion">
-                Good Morning!
-              </div>
+              <div class="shortcut-expansion">Good Morning!</div>
             </div>
 
             <!-- ;gn -->
@@ -339,9 +317,7 @@
                 <span class="shortcut-trigger">;gn</span>
                 <span class="badge">Built-in</span>
               </div>
-              <div class="shortcut-expansion">
-                Good Night!
-              </div>
+              <div class="shortcut-expansion">Good Night!</div>
             </div>
 
             <!-- ;tnx -->
@@ -350,9 +326,7 @@
                 <span class="shortcut-trigger">;tnx</span>
                 <span class="badge">Built-in</span>
               </div>
-              <div class="shortcut-expansion">
-                Thank you very much!
-              </div>
+              <div class="shortcut-expansion">Thank you very much!</div>
             </div>
 
             <!-- ;br -->
@@ -361,9 +335,7 @@
                 <span class="shortcut-trigger">;br</span>
                 <span class="badge">Built-in</span>
               </div>
-              <div class="shortcut-expansion">
-                Best Regards,
-              </div>
+              <div class="shortcut-expansion">Best Regards,</div>
             </div>
 
             <!-- ;asap -->
@@ -372,9 +344,7 @@
                 <span class="shortcut-trigger">;asap</span>
                 <span class="badge">Built-in</span>
               </div>
-              <div class="shortcut-expansion">
-                As soon as possible
-              </div>
+              <div class="shortcut-expansion">As soon as possible</div>
             </div>
 
             <!-- ;omg -->
@@ -383,16 +353,15 @@
                 <span class="shortcut-trigger">;omg</span>
                 <span class="badge">Built-in</span>
               </div>
-              <div class="shortcut-expansion">
-                Oh My GOD!
-              </div>
+              <div class="shortcut-expansion">Oh My GOD!</div>
             </div>
           </div>
 
           <div class="stats-info-card mt-24">
             <h3>💬 Communication Made Easy</h3>
             <p>
-              These shortcuts help you quickly type common phrases in emails and chats. They work everywhere!
+              These shortcuts help you quickly type common phrases in emails and
+              chats. They work everywhere!
             </p>
           </div>
         </section>
@@ -414,7 +383,9 @@
                 <span class="badge">Global</span>
               </div>
               <div class="shortcut-expansion">
-                Opens the <strong>Spotlight Search</strong>. Quickly search through all your shortcuts and paste them instantly into any application.
+                Opens the <strong>Spotlight Search</strong>. Quickly search
+                through all your shortcuts and paste them instantly into any
+                application.
               </div>
             </div>
 
@@ -425,7 +396,8 @@
                 <span class="badge">App Only</span>
               </div>
               <div class="shortcut-expansion">
-                Quickly open the <strong>Add New Shortcut</strong> modal when the main window is focused.
+                Quickly open the <strong>Add New Shortcut</strong> modal when
+                the main window is focused.
               </div>
             </div>
 
@@ -444,7 +416,9 @@
           <div class="stats-info-card mt-24">
             <h3>💡 Productivity Tip</h3>
             <p>
-              Use <strong>Ctrl + Space</strong> to find shortcuts you rarely use or can't remember the trigger for. It's the fastest way to stay productive!
+              Use <strong>Ctrl + Space</strong> to find shortcuts you rarely use
+              or can't remember the trigger for. It's the fastest way to stay
+              productive!
             </p>
           </div>
         </section>
@@ -552,6 +526,39 @@
         </section>
 
 
+        <!-- AI Assistant Section -->
+        <section id="aiAssistantSection" class="section">
+          <header class="header">
+            <div class="header-left">
+              <h1>AI Assistant</h1>
+              <p class="subtitle">Chat with your intelligent companion powered by HAZA AI</p>
+            </div>
+          </header>
+
+          <div class="ai-chat-container">
+            <div class="chat-messages" id="chatMessages">
+              <div class="chat-message ai">
+                <div class="message-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+                  </svg>
+                </div>
+                <div class="message-content">
+                  Hello! I'm your Ghost Typer assistant. How can I help you today?
+                </div>
+              </div>
+            </div>
+            <div class="chat-input-area">
+              <input type="text" id="chatInput" placeholder="Type your message..." />
+              <button id="sendMessageBtn" class="btn-send" aria-label="Send Message">
+                <svg viewBox="0 0 24 24" fill="none" class="feather feather-send" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </section>
 
         <!-- Settings Section -->
         <section id="settingsSection" class="section">
@@ -616,7 +623,6 @@
                   <span class="toggle-slider"></span>
                 </label>
               </div>
-
             </div>
 
             <div class="settings-group">
@@ -658,6 +664,8 @@
               </div>
             </div>
 
+
+
             <div class="settings-group">
               <h3>Data</h3>
 
@@ -694,14 +702,80 @@
           </div>
 
           <div class="about-card">
-            <h3>About Ghost Typer</h3>
-            <p>Version 1.1.0</p>
+            <h3>Ghost Typer Version 1.1.0</h3>
             <p class="about-desc">
-              A powerful text expansion tool that helps you type faster by
-              replacing short triggers with longer text snippets.
+              Developed with ❤️ by HAZA.
             </p>
           </div>
         </section>
+
+        <!-- About Section -->
+        <section id="aboutSection" class="section">
+          <header class="header">
+            <div class="header-left">
+              <h1>About Ghost Typer</h1>
+              <p class="subtitle">Learn more about the creator and the application</p>
+            </div>
+          </header>
+
+          <div class="about-full-card">
+            <div class="about-header">
+              <div class="about-logo">
+                <img src="assets/icon.ico" alt="Ghost Typer" />
+              </div>
+              <div class="about-title">
+                <h2>Ghost Typer</h2>
+                <span class="version-badge">v1.1.0-Premium</span>
+              </div>
+            </div>
+            
+            <div class="about-body">
+              <div class="about-info-group">
+                <h3>The Application</h3>
+                <p>Ghost Typer is a high-performance text expansion tool designed to maximize productivity. By allowing users to create custom triggers that expand into complex text snippets, it eliminates repetitive typing and saves thousands of keystrokes every day.</p>
+              </div>
+
+              <div class="about-info-group">
+                <h3>The Creator</h3>
+                <div class="creator-info">
+                  <div class="creator-avatar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                    </svg>
+                  </div>
+                  <div class="creator-details">
+                    <p class="creator-name">Janma Hasarel <span class="creator-role">(Founder of HAZA)</span></p>
+                    <p class="creator-bio">Janma Hasarel is a passionate developer dedicated to building tools that empower users. Ghost Typer was born from his vision of a world where technology works seamlessly to enhance human potential and productivity.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="about-info-group">
+                 <h3>Contact & Support</h3>
+                 <p>For support, feature requests, or collaboration, feel free to reach out to the HAZA team. We are constantly improving Ghost Typer to better serve your needs.</p>
+                 <div class="contact-actions">
+                   <a id="githubBtn" href="https://github.com/hazasite" target="_blank" rel="noopener" class="btn-contact github">
+                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                       <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7a3.37 3.37 0 0 0-.94 2.58V22"/>
+                     </svg>
+                     GitHub
+                   </a>
+                   <a id="whatsappBtn" href="https://api.whatsapp.com/send?phone=94771315403&text=Contacted%20From%20Ghost%20Typer%20%F0%9F%91%BB%0AAre%20You%20Janma%20Hasarel%20(HAZA)" target="_blank" rel="noopener" class="btn-contact whatsapp">
+                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                       <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                     </svg>
+                     WhatsApp
+                   </a>
+                 </div>
+              </div>
+            </div>
+            
+            <div class="about-footer">
+              <p>© 2026 HAZA. All rights reserved.</p>
+            </div>
+          </div>
+        </section>
+
       </main>
     </div>
 
