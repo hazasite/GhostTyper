@@ -16,7 +16,7 @@ GhostTyper is a powerful, lightweight Windows application designed to speed up y
 ## 📥 How to Install
 
 1.  Go to the [Latest Release](https://github.com/hazasite/GhostTyper/releases/latest).
-2.  Download `GhostTyper Setup 1.0.1.exe`.
+2.  Download `GhostTyper Setup x.x.x.exe`.
 3.  Run the installer and follow the steps.
 4.  Start typing smarter!
 
